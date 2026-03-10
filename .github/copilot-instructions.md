@@ -1,0 +1,9 @@
+- [x] Scaffold the Project
+- [x] Mettre à jour le plan de projet selon le cahier des charges
+- [ ] Créer le dossier public/videos et ajouter une vidéo de démonstration
+- [ ] Créer data/videos.json avec les métadonnées requises
+- [ ] Développer le composant vidéo principal (affichage, chat, bouton WhatsApp)
+- [ ] Mettre en place le mur vertical scrollable et la logique d’éphémérité
+- [ ] Optimiser le design mobile-first et la configuration Tailwind
+- [ ] Vérifier la configuration pour déploiement Vercel/Netlify
+- [x] Mettre à jour la documentation (README, instructions)

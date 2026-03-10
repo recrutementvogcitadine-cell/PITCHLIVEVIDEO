@@ -1,0 +1,8 @@
+[
+  {
+    "src": "/videos/demo.txt", // Remplacez par /videos/nom_de_votre_video.mp4
+    "creator": "Nom du Créateur",
+    "timestamp": "2026-03-10T12:00:00Z",
+    "whatsapp": "+33612345678"
+  }
+]
