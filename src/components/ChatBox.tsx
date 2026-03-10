@@ -56,12 +56,13 @@ export default function ChatBox({ videoId, creator }: ChatBoxProps) {
           setMessages((msgs) => [...msgs, payload.new as ChatMessage]);
         }
       })
-      .on('error', () => {
-        setRealtimeStatus('error');
-      })
-      .on('close', () => {
-        setRealtimeStatus('closed');
-      })
+        .on('error', {}, (payload) => {
+          setRealtimeStatus('error');
+          // Optionnel : console.error(payload);
+        })
+        .on('close', {}, (payload) => {
+          setRealtimeStatus('closed');
+        })
       .subscribe();
 
     return () => {
