@@ -28,10 +28,6 @@ export default function VideoCard({ src, creator, whatsapp, children }: VideoPro
     setLikeCount((prev) => liked ? prev - 1 : prev + 1);
   };
 
-  // Commentaire
-  const handleComment = () => {
-    setChatOpen((prev) => !prev);
-  };
 
   // Partage
   const handleShare = () => {
