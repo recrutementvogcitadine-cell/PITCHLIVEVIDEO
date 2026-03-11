@@ -89,58 +89,50 @@ export default function ChatBox({ videoId, creator }: ChatBoxProps) {
   };
 
   return (
-    <div className="bg-white/80 rounded-lg p-3 max-h-60 overflow-y-auto shadow mt-2">
-      <div className="flex gap-2 mb-2 text-xs">
-        <span className={restStatus === 'ok' ? 'text-green-600' : restStatus === 'pending' ? 'text-gray-400' : 'text-red-600'}>
-          REST: {restStatus}
-        </span>
-        <span className={realtimeStatus === 'open' ? 'text-green-600' : realtimeStatus === 'connecting' ? 'text-gray-400' : 'text-red-600'}>
-          Realtime: {realtimeStatus}
-        </span>
-      </div>
-      {fetchError && (
-        <div className="text-red-600 font-bold mb-2">Erreur chargement messages : {fetchError}</div>
-      )}
-      <div className="flex flex-col gap-1 mb-2">
+    <div className="flex flex-col gap-1 w-full max-w-xs pointer-events-auto">
+      {/* Messages overlay façon Instagram Live */}
+      <div className="flex flex-col gap-1 max-h-32 overflow-y-auto px-1">
         {messages.length === 0 && (
-          <div className="text-gray-400 text-xs">Aucun message pour cette vidéo.</div>
+          <div className="text-white/70 text-xs italic">Aucun message</div>
         )}
-        {messages.map((msg) => (
-          <div key={msg.id} className="text-sm">
-            <span className="font-semibold text-gray-800">{msg.creator}:</span> <span className="text-gray-700">{msg.message}</span>
+        {messages.slice(-6).map((msg) => (
+          <div key={msg.id} className="flex items-center">
+            <span className="bg-black/60 text-white rounded-2xl px-3 py-1 mr-1 text-xs font-semibold shadow-sm max-w-[80%] truncate">
+              <span className="text-blue-300 font-bold mr-1">{msg.creator}:</span>
+              {msg.message}
+            </span>
           </div>
         ))}
       </div>
-      <form onSubmit={handleSend} className="flex flex-col sm:flex-row gap-2 items-end w-full">
-        {sendError && <div className="text-red-600 text-xs font-bold mb-2">{sendError}</div>}
-        <div className="flex flex-col w-full sm:w-[90px] flex-shrink-0" style={{maxWidth:'100%', minWidth:0}}>
-          <label htmlFor="chat-pseudo" className="text-xs font-bold text-blue-700 mb-1">Pseudo</label>
-          <input
-            id="chat-pseudo"
-            type="text"
-            placeholder="Pseudo"
-            value={author}
-            onChange={e => setAuthor(e.target.value)}
-            className="rounded px-2 py-1 text-sm border-2 border-blue-400 focus:border-blue-700 outline-none bg-white w-full"
-          />
-        </div>
-        <div className="flex-1 flex flex-col w-full" style={{minWidth:0}}>
-          <input
-            type="text"
-            placeholder="Votre message..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            className="rounded px-2 py-1 text-sm border border-gray-300 w-full"
-            onKeyDown={e => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                document.getElementById('chatbox-send-btn')?.click();
-              }
-            }}
-          />
-        </div>
-        <button id="chatbox-send-btn" type="submit" className="bg-blue-500 text-white px-3 py-1 rounded text-sm font-bold ml-0 sm:ml-1 w-full sm:w-auto" style={{maxWidth: '120px'}}>Envoyer</button>
+      {/* Champ de saisie moderne, flottant */}
+      <form onSubmit={handleSend} className="flex gap-1 items-center bg-black/40 rounded-2xl px-2 py-1 mt-1 shadow-none border-none">
+        <input
+          id="chat-pseudo"
+          type="text"
+          placeholder="Pseudo"
+          value={author}
+          onChange={e => setAuthor(e.target.value)}
+          className="rounded-2xl px-2 py-1 text-xs bg-white/80 text-black placeholder:text-gray-400 border-none outline-none w-16 flex-shrink-0"
+          style={{minWidth:'0'}}
+        />
+        <input
+          type="text"
+          placeholder="Message..."
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          className="rounded-2xl px-2 py-1 text-xs bg-white/80 text-black placeholder:text-gray-400 border-none outline-none w-full"
+          style={{minWidth:'0'}}
+          onKeyDown={e => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              document.getElementById('chatbox-send-btn')?.click();
+            }
+          }}
+        />
+        <button id="chatbox-send-btn" type="submit" className="bg-gradient-to-br from-blue-500 to-blue-700 text-white px-3 py-1 rounded-2xl text-xs font-bold w-auto shadow-sm hover:from-blue-600 hover:to-blue-800 transition-all" style={{maxWidth: '60px'}}>Envoyer</button>
       </form>
+      {sendError && <div className="text-red-500 text-xs font-bold mt-1">{sendError}</div>}
+      {fetchError && <div className="text-red-500 text-xs font-bold mt-1">Erreur : {fetchError}</div>}
     </div>
   );
 }
