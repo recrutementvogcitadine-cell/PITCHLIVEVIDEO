@@ -1,3 +1,9 @@
+  function handleVideoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setVideo(file);
+    setPreview(URL.createObjectURL(file));
+  }
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabaseClient } from "../../lib/supabaseClient";
