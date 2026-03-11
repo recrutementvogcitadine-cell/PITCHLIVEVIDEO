@@ -1,13 +1,26 @@
+
+"use client";
+import React, { useState, useEffect } from "react";
+import { supabaseClient } from "../../lib/supabaseClient";
+import { useRouter } from "next/navigation";
+
+export default function CreatorWall() {
+  const router = useRouter();
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [video, setVideo] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [pseudo, setPseudo] = useState("");
+  const [phone, setPhone] = useState("");
+  const [followers, setFollowers] = useState(0);
+  const [mediaType, setMediaType] = useState<'video' | 'photo'>('video');
+
   function handleVideoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
     setVideo(file);
     setPreview(URL.createObjectURL(file));
   }
-"use client";
-import React, { useState, useEffect } from "react";
-import { supabaseClient } from "../../lib/supabaseClient";
-import { useRouter } from "next/navigation";
 
 export default function CreatorWall() {
   const router = useRouter();
