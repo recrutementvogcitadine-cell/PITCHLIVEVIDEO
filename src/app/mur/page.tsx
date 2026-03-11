@@ -102,22 +102,7 @@ export default function CreatorWall() {
         };
         fetchFollowers();
       }, [router]);
-            if (storedPhone) setPhone(storedPhone);
-            // Charger le nombre d’abonnés (followers)
-            const { data, error } = await supabaseClient
-              .from('followers')
-              .select('id')
-              .eq('creator', storedPseudo);
-            if (error) {
-              console.error(error);
-              return;
-            }
-            setFollowers(data ? data.length : 0);
-          };
-          fetchFollowers();
-        }, [router]);
-            readOnly={true}
-          />
+        // ...existing code...
           {/* Suivre & abonnés (aperçu) */}
           <div className="flex flex-col items-center mt-1">
             <button
