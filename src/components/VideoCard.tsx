@@ -2,7 +2,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabaseClient } from "../lib/supabaseClient";
 import { getShareCount, recordShare } from "../lib/shareUtils";
 import { useRouter } from "next/navigation";
 
@@ -64,13 +64,13 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     e.preventDefault();
     setSignupError(null);
     // Vérifier unicité pseudo
-    const { data: existing } = await supabase.from('users').select('id').eq('username', username);
+    const { data: existing } = await supabaseClient.from('users').select('id').eq('username', username);
     if (existing && existing.length > 0) {
       setSignupError('Ce nom d’utilisateur est déjà pris.');
       return;
     }
     // Envoi à Supabase
-    const { error } = await supabase.from('users').insert({
+    const { error } = await supabaseClient.from('users').insert({
       username,
       phone,
       password,
@@ -95,7 +95,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     }
     fetchShares();
     // Optionnel : abonnement temps réel
-    const channel = supabase
+    const channel = supabaseClient
       .channel('public:shares')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'shares', filter: `video_id=eq.${src}` }, (payload) => {
         fetchShares();
@@ -103,7 +103,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
       .subscribe();
     return () => {
       ignore = true;
-      supabase.removeChannel(channel);
+      supabaseClient.removeChannel(channel);
     };
   }, [src]);
 
@@ -112,7 +112,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     let ignore = false;
     let interval: any;
     async function upsertViewer() {
-      await supabase.from('viewers').upsert({
+      await supabaseClient.from('viewers').upsert({
         video_id: src,
         user_id: userId,
         last_seen: new Date().toISOString(),
@@ -120,7 +120,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     }
     async function fetchViewers() {
       const since = new Date(Date.now() - 60 * 1000).toISOString();
-      const { data } = await supabase
+      const { data } = await supabaseClient
         .from('viewers')
         .select('user_id', { count: 'exact' })
         .eq('video_id', src)
@@ -142,7 +142,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
   useEffect(() => {
     let ignore = false;
     async function fetchLikes() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('likes')
         .select('*', { count: 'exact' })
         .eq('video_id', src);
@@ -153,7 +153,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     }
     fetchLikes();
     // Optionnel : abonnement temps réel
-    const channel = supabase
+    const channel = supabaseClient
       .channel('public:likes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'likes', filter: `video_id=eq.${src}` }, (payload) => {
         fetchLikes();
@@ -161,7 +161,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
       .subscribe();
     return () => {
       ignore = true;
-      supabase.removeChannel(channel);
+      supabaseClient.removeChannel(channel);
     };
   }, [src, userId]);
 
@@ -175,12 +175,12 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     if (!userId) return;
     if (liked) {
       // Supprimer le like
-      await supabase.from('likes').delete().eq('video_id', src).eq('user_id', userId);
+      await supabaseClient.from('likes').delete().eq('video_id', src).eq('user_id', userId);
       setLiked(false);
       setLikeCount((c) => Math.max(0, c - 1));
     } else {
       // Ajouter le like
-      await supabase.from('likes').insert({ video_id: src, user_id: userId });
+      await supabaseClient.from('likes').insert({ video_id: src, user_id: userId });
       setLiked(true);
       setLikeCount((c) => c + 1);
     }

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabaseClient } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 export default function CreatorWall() {
@@ -25,7 +25,7 @@ export default function CreatorWall() {
       setPseudo(storedPseudo);
       if (storedPhone) setPhone(storedPhone);
       // Charger le nombre d’abonnés (followers)
-      supabase
+      supabaseClient
         .from('followers')
         .select('id', { count: 'exact' })
         .eq('creator', storedPseudo)
