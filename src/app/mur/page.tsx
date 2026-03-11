@@ -21,23 +21,6 @@ export default function CreatorWall() {
     setVideo(file);
     setPreview(URL.createObjectURL(file));
   }
-
-export default function CreatorWall() {
-  const router = useRouter();
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [whatsapp, setWhatsapp] = useState("");
-  const [video, setVideo] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [pseudo, setPseudo] = useState("");
-  const [phone, setPhone] = useState("");
-  const [followers, setFollowers] = useState(0);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const registered = localStorage.getItem('user_registered');
-      const storedPseudo = localStorage.getItem('user_pseudo');
-      const storedPhone = localStorage.getItem('user_phone');
-      if (!registered || !storedPseudo) {
         router.replace('/');
         return;
       }
