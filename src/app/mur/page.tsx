@@ -21,20 +21,29 @@ export default function CreatorWall() {
     setVideo(file);
     setPreview(URL.createObjectURL(file));
   }
+
+  useEffect(() => {
+    const fetchFollowers = async () => {
+      // Example: fetch pseudo from localStorage
+      const storedPseudo = localStorage.getItem("pseudo");
+      const storedPhone = localStorage.getItem("phone");
+      if (!storedPseudo) {
         router.replace('/');
         return;
       }
       setPseudo(storedPseudo);
       if (storedPhone) setPhone(storedPhone);
       // Charger le nombre d’abonnés (followers)
-      supabaseClient
+      const { data, error } = await supabaseClient
         .from('followers')
-        .select('id', { count: 'exact' })
-        .eq('creator', storedPseudo)
-        .then(({ data }) => {
-          setFollowers(data ? data.length : 0);
-        });
-    }
+        .select('id');
+      if (error) {
+        console.error(error);
+        return;
+      }
+      setFollowers(data ? data.length : 0);
+    };
+    fetchFollowers();
   }, [router]);
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -70,19 +79,43 @@ export default function CreatorWall() {
         <div className="flex flex-col items-center gap-2">
           <label htmlFor="avatar-upload" className="cursor-pointer">
             {avatar ? (
-              <img src={avatar} alt="avatar" className="w-20 h-20 rounded-full object-cover border-2 border-blue-400" />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-blue-200 flex items-center justify-center text-3xl text-blue-600 font-bold border-2 border-blue-300">+</div>
-            )}
-            <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-          </label>
-          <input
-            type="text"
-            placeholder="Pseudo"
-            className="rounded px-2 py-1 border border-blue-300 w-full text-center"
-            value={pseudo}
-            onChange={e => setPseudo(e.target.value)}
-            required
+      useEffect(() => {
+        const fetchFollowers = async () => {
+          const storedPseudo = localStorage.getItem("pseudo");
+          const storedPhone = localStorage.getItem("phone");
+          if (!storedPseudo) {
+            router.replace('/');
+            return;
+          }
+          setPseudo(storedPseudo);
+          if (storedPhone) setPhone(storedPhone);
+          // Charger le nombre d’abonnés (followers)
+          const { data, error } = await supabaseClient
+            .from('followers')
+            .select('id')
+            .eq('creator', storedPseudo);
+          if (error) {
+            console.error(error);
+            return;
+          }
+          setFollowers(data ? data.length : 0);
+        };
+        fetchFollowers();
+      }, [router]);
+            if (storedPhone) setPhone(storedPhone);
+            // Charger le nombre d’abonnés (followers)
+            const { data, error } = await supabaseClient
+              .from('followers')
+              .select('id')
+              .eq('creator', storedPseudo);
+            if (error) {
+              console.error(error);
+              return;
+            }
+            setFollowers(data ? data.length : 0);
+          };
+          fetchFollowers();
+        }, [router]);
             readOnly={true}
           />
           {/* Suivre & abonnés (aperçu) */}
