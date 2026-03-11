@@ -88,14 +88,14 @@ export default function CreatorWall() {
               style={{ pointerEvents: 'none' }}
             >
               Suivre
+            <button
+              aria-disabled="true"
+              className="bg-blue-400 text-white rounded-full px-4 py-1 text-xs font-bold shadow cursor-not-allowed select-none opacity-70 pointer-events-none border-none outline-none"
+              style={{ pointerEvents: 'none' }}
+            >
+              Suivre
             </button>
-             <span className="text-xs text-gray-500 mt-1">{followers} abonnés</span>
-          </div>
-        </div>
-        {/* WhatsApp */}
-        <input
-          type="text"
-          placeholder="Numéro WhatsApp"
+            <span className="text-xs text-gray-500 mt-1">{followers} abonnés</span>
           className="rounded px-2 py-1 border border-green-400 w-full"
           value={whatsapp}
           onChange={e => setWhatsapp(e.target.value)}
