@@ -43,7 +43,7 @@ export default function CreatorWall() {
       }
       setFollowers(data ? data.length : 0);
     };
-    fetchFollowers();
+      fetchFollowers();
   }, [router]);
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
