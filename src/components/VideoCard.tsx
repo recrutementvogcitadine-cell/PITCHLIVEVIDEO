@@ -41,6 +41,25 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
   const [showPwd, setShowPwd] = useState(false);
 
   const [signupError, setSignupError] = useState<string | null>(null);
+  const [error, setError] = React.useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const userId = (typeof window !== 'undefined' && localStorage.getItem('user_pseudo')) || "";
+  const [viewerCount, setViewerCount] = useState(0);
+  const [shareCount, setShareCount] = useState(0);
+  const [chatOpen, setChatOpen] = React.useState(true);
+  const [shareOpen, setShareOpen] = React.useState(false);
+  // Gestion du son vidéo
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = React.useState(true);
+  const toggleMute = () => {
+    setIsMuted((m) => {
+      const newMute = !m;
+      if (videoRef.current) videoRef.current.muted = newMute;
+      return newMute;
+    });
+  };
+
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setSignupError(null);
@@ -67,33 +86,27 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     setShowSignup(false);
     router.push('/mur');
   }
-  const [error, setError] = React.useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const userId = (typeof window !== 'undefined' && localStorage.getItem('user_pseudo')) || "";
-  const [viewerCount, setViewerCount] = useState(0);
-  const [shareCount, setShareCount] = useState(0);
-    // Charger le compteur de partages
-    useEffect(() => {
-      let ignore = false;
-      async function fetchShares() {
-        const count = await getShareCount(src);
-        if (!ignore) setShareCount(count);
-      }
-      fetchShares();
-      // Optionnel : abonnement temps réel
-      const channel = supabase
-        .channel('public:shares')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'shares', filter: `video_id=eq.${src}` }, (payload) => {
-          fetchShares();
-        })
-        .subscribe();
-      return () => {
-        ignore = true;
-        supabase.removeChannel(channel);
-      };
-    }, [src]);
-  // Gestion spectateurs en temps réel
+
+  useEffect(() => {
+    let ignore = false;
+    async function fetchShares() {
+      const count = await getShareCount(src);
+      if (!ignore) setShareCount(count);
+    }
+    fetchShares();
+    // Optionnel : abonnement temps réel
+    const channel = supabase
+      .channel('public:shares')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shares', filter: `video_id=eq.${src}` }, (payload) => {
+        fetchShares();
+      })
+      .subscribe();
+    return () => {
+      ignore = true;
+      supabase.removeChannel(channel);
+    };
+  }, [src]);
+
   useEffect(() => {
     if (!userId) return;
     let ignore = false;
@@ -126,7 +139,6 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     };
   }, [src, userId]);
 
-  // Charger le compteur de likes et l'état like
   useEffect(() => {
     let ignore = false;
     async function fetchLikes() {
@@ -152,18 +164,13 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
       supabase.removeChannel(channel);
     };
   }, [src, userId]);
-  // Chat togglable
-  const [chatOpen, setChatOpen] = React.useState(true);
-  const [shareOpen, setShareOpen] = React.useState(false);
 
-  // Copier le lien
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.origin + src);
     setShareOpen(false);
     alert("Lien copié !");
   };
 
-  // Like persistant
   const handleLike = async () => {
     if (!userId) return;
     if (liked) {
@@ -179,13 +186,10 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     }
   };
 
-
-  // Partage
   const handleShare = () => {
     setShareOpen((prev) => !prev);
   };
 
-  // Enregistrer le partage
   const handleShareAction = async () => {
     if (userId) {
       await recordShare(src, userId);
@@ -250,16 +254,6 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
           </button>
         </>
       ) : (
-        // Gestion du son vidéo
-        const videoRef = React.useRef<HTMLVideoElement>(null);
-        const [isMuted, setIsMuted] = React.useState(true);
-        const toggleMute = () => {
-          setIsMuted((m) => {
-            const newMute = !m;
-            if (videoRef.current) videoRef.current.muted = newMute;
-            return newMute;
-          });
-        };
         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/80 z-10">
           <span className="text-white text-2xl font-bold">Vidéo expirée</span>
         </div>

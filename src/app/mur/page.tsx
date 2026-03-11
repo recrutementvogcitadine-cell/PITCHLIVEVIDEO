@@ -1,47 +1,41 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
+export default function CreatorWall() {
+  const router = useRouter();
   const [avatar, setAvatar] = useState<string | null>(null);
   const [whatsapp, setWhatsapp] = useState("");
   const [video, setVideo] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [pseudo, setPseudo] = useState("");
   const [phone, setPhone] = useState("");
+  const [followers, setFollowers] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const registered = localStorage.getItem('user_registered');
       const storedPseudo = localStorage.getItem('user_pseudo');
-    export default function CreatorWall() {
-      const router = require('next/navigation').useRouter();
-      const [avatar, setAvatar] = useState<string | null>(null);
-      const [whatsapp, setWhatsapp] = useState("");
-      const [video, setVideo] = useState<File | null>(null);
-      const [preview, setPreview] = useState<string | null>(null);
-      const [pseudo, setPseudo] = useState("");
-      const [phone, setPhone] = useState("");
-      const [followers, setFollowers] = useState(0);
+      const storedPhone = localStorage.getItem('user_phone');
+      if (!registered || !storedPseudo) {
+        router.replace('/');
+        return;
+      }
+      setPseudo(storedPseudo);
+      if (storedPhone) setPhone(storedPhone);
+      // Charger le nombre d’abonnés (followers)
+      supabase
+        .from('followers')
+        .select('id', { count: 'exact' })
+        .eq('creator', storedPseudo)
+        .then(({ data }) => {
+          setFollowers(data ? data.length : 0);
+        });
+    }
+  }, [router]);
 
-      useEffect(() => {
-        if (typeof window !== 'undefined') {
-          const registered = localStorage.getItem('user_registered');
-          const storedPseudo = localStorage.getItem('user_pseudo');
-          const storedPhone = localStorage.getItem('user_phone');
-          if (!registered || !storedPseudo) {
-            router.replace('/');
-            return;
-          }
-          setPseudo(storedPseudo);
-          if (storedPhone) setPhone(storedPhone);
-          // Charger le nombre d’abonnés (followers)
-          supabase
-            .from('followers')
-            .select('id', { count: 'exact' })
-            .eq('creator', storedPseudo)
-            .then(({ data }) => {
-              setFollowers(data ? data.length : 0);
-            });
-        }
-      }, [router]);
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
       setVideo(file);
