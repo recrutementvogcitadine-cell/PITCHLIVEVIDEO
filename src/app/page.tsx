@@ -10,12 +10,14 @@ import { subscribeToPush } from "../lib/notifyUtils";
 
 export default function Home() {
   // États pour l'inscription et l'utilisateur
-  const [showSignup, setShowSignup] = useState<undefined | boolean>(undefined);
+  const [showSignup, setShowSignup] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // Synchroniser showSignup avec localStorage côté client après le premier rendu (une seule fois)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setShowSignup(!localStorage.getItem('user_registered'));
+      setHydrated(true);
     }
   }, []);
   const [username, setUsername] = useState("");
@@ -106,7 +108,7 @@ export default function Home() {
       </div>
       <div className="flex-1 flex items-center justify-center">
         {/* Fiche d'inscription globale, transparente et flottante */}
-        {showSignup === true && (
+        {hydrated && showSignup && (
           <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
             <form onSubmit={handleSignup} className="bg-white/60 rounded-2xl shadow-xl p-6 flex flex-col gap-4 w-[90vw] max-w-xs backdrop-blur-md border border-blue-200" style={{boxShadow:'0 8px 32px 0 rgba(31,38,135,0.37)'}}>
               <div className="flex flex-col items-center mb-2">
