@@ -5,8 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://jxhgmetivgnsphyowjcw.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  throw new Error('Missing Supabase configuration: check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars.');
+if (!SUPABASE_KEY) {
+  throw new Error('SUPABASE_SERVICE_ROLE_KEY env var is required');
 }
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
