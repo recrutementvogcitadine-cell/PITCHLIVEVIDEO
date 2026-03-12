@@ -61,7 +61,7 @@ export default function Home() {
         await subscribeToPush(username);
       } catch {}
     }
-    window.location.reload();
+    // window.location.reload();
   }
 
   // useEffect pour notifications push à l'accès au mur
