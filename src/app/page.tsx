@@ -163,8 +163,8 @@ export default function Home() {
               <ChatBox videoId={currentVideo?.src || "demo"} creator={currentVideo?.creator || ""} />
             </div>
           </div>
-        </div>
-      </div>
+        </div> {/* fermeture du .flex-1 */}
+      </div> {/* fermeture du .w-full min-h-screen */}
     </div>
   );
 }
