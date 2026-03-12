@@ -18,7 +18,7 @@ export async function subscribeToPush(userId: string) {
   throw new Error('Push non supporté');
 }
 
-export async function showLocalNotification(title, options) {
+export async function showLocalNotification(title: string, options: NotificationOptions) {
   if (Notification.permission === 'granted') {
     navigator.serviceWorker.getRegistration().then(function(reg) {
       if (reg) reg.showNotification(title, options);

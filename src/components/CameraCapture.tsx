@@ -9,8 +9,10 @@ export default function CameraCapture() {
   const [mode, setMode] = useState<Mode>("photo");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [photoTimestamp, setPhotoTimestamp] = useState<number | null>(null);
   const [recording, setRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
+  const [videoTimestamp, setVideoTimestamp] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [timer, setTimer] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -40,11 +42,9 @@ export default function CameraCapture() {
   // Video preview
   useEffect(() => {
     if (videoRef.current && stream) {
-    const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
-    const [photoTimestamp, setPhotoTimestamp] = useState<number | null>(null);
+      // rien à faire ici, hooks déjà déclarés en haut
     }
   }, [stream]);
-    const [videoTimestamp, setVideoTimestamp] = useState<number | null>(null);
 
   // Timer for video
   useEffect(() => {
@@ -104,6 +104,7 @@ export default function CameraCapture() {
     if (ctx) {
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
       setCapturedPhoto(canvas.toDataURL("image/jpeg"));
+      setPhotoTimestamp(Date.now());
     }
   };
 
@@ -116,6 +117,42 @@ export default function CameraCapture() {
     setTimer(0);
     setProgress(0);
   };
+
+  // Expiration automatique à 24h pour la photo
+  useEffect(() => {
+    if (photoTimestamp) {
+      const now = Date.now();
+      const expire = photoTimestamp + 24 * 60 * 60 * 1000;
+      if (now >= expire) {
+        setCapturedPhoto(null);
+        setPhotoTimestamp(null);
+      } else {
+        const timeout = setTimeout(() => {
+          setCapturedPhoto(null);
+          setPhotoTimestamp(null);
+        }, expire - now);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [photoTimestamp]);
+
+  // Expiration automatique à 24h pour la vidéo
+  useEffect(() => {
+    if (videoTimestamp) {
+      const now = Date.now();
+      const expire = videoTimestamp + 24 * 60 * 60 * 1000;
+      if (now >= expire) {
+        setRecordedVideo(null);
+        setVideoTimestamp(null);
+      } else {
+        const timeout = setTimeout(() => {
+          setRecordedVideo(null);
+          setVideoTimestamp(null);
+        }, expire - now);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [videoTimestamp]);
 
   // UI
   return (
@@ -154,57 +191,6 @@ export default function CameraCapture() {
             {m.toUpperCase()}
           </button>
         ))}
-      </div>
-      {/* Capture button */}
-      <div className="flex justify-center items-center py-4">
-        {mode === "photo" && !capturedPhoto && (
-          <button
-            className="w-16 h-16 rounded-full bg-white border-4 border-blue-600 flex items-center justify-center text-2xl font-bold shadow-lg"
-            onClick={handleCapturePhoto}
-          >
-            📷
-          </button>
-        )}
-        {/* ...existing code... */}
-      </div>
-    </div>
-  );
-}
-
-// Expiration automatique à 24h
-useEffect(() => {
-  if (photoTimestamp) {
-    const now = Date.now();
-    const expire = photoTimestamp + 24 * 60 * 60 * 1000;
-    if (now >= expire) {
-      setCapturedPhoto(null);
-      setPhotoTimestamp(null);
-    } else {
-      const timeout = setTimeout(() => {
-        setCapturedPhoto(null);
-        setPhotoTimestamp(null);
-      }, expire - now);
-      return () => clearTimeout(timeout);
-    }
-  }
-}, [photoTimestamp]);
-
-useEffect(() => {
-  if (videoTimestamp) {
-    const now = Date.now();
-    const expire = videoTimestamp + 24 * 60 * 60 * 1000;
-    if (now >= expire) {
-      setRecordedVideo(null);
-      setVideoTimestamp(null);
-    } else {
-      const timeout = setTimeout(() => {
-        setRecordedVideo(null);
-        setVideoTimestamp(null);
-      }, expire - now);
-      return () => clearTimeout(timeout);
-    }
-  }
-}, [videoTimestamp]);
       </div>
       {/* Capture button */}
       <div className="flex justify-center items-center py-4">

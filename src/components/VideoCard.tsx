@@ -116,7 +116,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
         video_id: src,
         user_id: userId,
         last_seen: new Date().toISOString(),
-      }, { onConflict: ['video_id', 'user_id'] });
+      }, { onConflict: 'video_id,user_id' });
     }
     async function fetchViewers() {
       const since = new Date(Date.now() - 60 * 1000).toISOString();
