@@ -144,7 +144,11 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-black">
+    <div className="w-full min-h-screen flex flex-col bg-black">
+      <div className="w-full flex justify-end p-4">
+        <a href="/camera" className="bg-blue-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-blue-700 transition">📷 Accéder à la caméra</a>
+      </div>
+      <div className="flex-1 flex items-center justify-center">
       {/* Fiche d'inscription globale, transparente et flottante */}
       {showSignup && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">

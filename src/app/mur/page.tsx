@@ -83,30 +83,29 @@ export default function CreatorWall() {
               <div className="w-20 h-20 rounded-full bg-blue-200 flex items-center justify-center text-3xl text-blue-600 font-bold border-2 border-blue-300">+</div>
             )}
             <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-              aria-disabled="true"
-              className="bg-blue-400 text-white rounded-full px-4 py-1 text-xs font-bold shadow cursor-not-allowed select-none opacity-70 pointer-events-none border-none outline-none"
-              style={{ pointerEvents: 'none' }}
-            >
-              Suivre
-            <button
-              aria-disabled="true"
-              className="bg-blue-400 text-white rounded-full px-4 py-1 text-xs font-bold shadow cursor-not-allowed select-none opacity-70 pointer-events-none border-none outline-none"
-              style={{ pointerEvents: 'none' }}
-            >
-              Suivre
-            </button>
-            <span className="text-xs text-gray-500 mt-1">{followers} abonnés</span>
-          className="rounded px-2 py-1 border border-green-400 w-full"
-          value={whatsapp}
-          onChange={e => setWhatsapp(e.target.value)}
-          required
+          </label>
+          <button
+            type="button"
+            className="bg-blue-400 text-white rounded-full px-4 py-1 text-xs font-bold shadow-sm"
+            style={{ pointerEvents: 'none' }}
+            aria-disabled="true"
+          >
+            Suivre
+          </button>
+          <span className="text-xs text-gray-500 mt-1">{followers} abonnés</span>
+        </div>
+        <input
+          type="text"
+          placeholder="Identifiant/mot-clé"
+          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white/80 backdrop-blur-sm"
         />
         <input
           type="text"
           placeholder="Numéro de téléphone (profil)"
-          className="rounded px-2 py-1 border border-gray-300 w-full bg-gray-100 mt-1"
-          value={phone}
-          readOnly={true}
+          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white/80 backdrop-blur-sm"
+          value={whatsapp}
+          onChange={e => setWhatsapp(e.target.value)}
+          required
         />
         {/* Vidéo/photo */}
         <div className="flex flex-col gap-2">
