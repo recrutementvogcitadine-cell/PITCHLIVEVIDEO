@@ -142,7 +142,6 @@ export default function Home() {
       </div>
     );
   }
-
   return (
     <div className="w-full min-h-screen flex flex-col bg-black">
       <div className="w-full flex justify-end p-4">
