@@ -209,7 +209,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-        </div> {/* fermeture du .flex-1 */}
-      </div> {/* fermeture du .w-full min-h-screen */}
+        {/* fermeture du .flex-1 */}
+      {/* fermeture du .w-full min-h-screen */}
     </div>
   );
