@@ -1,6 +1,9 @@
+
+"use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,21 +25,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.navigator.userAgent.match(/Mobile|Android|iPhone/)) {
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+      document.body.style.background = '#000';
+      window.scrollTo(0, 1);
+    }
+  }, []);
   return (
-        <html lang="fr" style={{ height: '100%', background: '#000' }}>
-          <body className="bg-black text-white min-h-screen w-full overflow-hidden touch-none select-none" style={{ overscrollBehavior: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', WebkitOverflowScrolling: 'touch', height: '100%', background: '#000' }}>
-            {children}
-            <React.useEffect(() => {
-              if (typeof window !== 'undefined' && window.navigator.userAgent.match(/Mobile|Android|iPhone/)) {
-                document.documentElement.style.height = '100%';
-                document.body.style.height = '100%';
-                document.body.style.overflow = 'hidden';
-                document.body.style.background = '#000';
-                // PWA: tenter de cacher la barre nav (iOS/Android)
-                window.scrollTo(0, 1);
-              }
-            }, [])}
-          </body>
-        </html>
+    <html lang="fr" style={{ height: '100%', background: '#000' }}>
+      <body className="bg-black text-white min-h-screen w-full overflow-hidden touch-none select-none" style={{ overscrollBehavior: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', WebkitOverflowScrolling: 'touch', height: '100%', background: '#000' }}>
+        {children}
+      </body>
+    </html>
   );
 }
