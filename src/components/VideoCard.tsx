@@ -185,7 +185,23 @@ interface VideoProps {
   const userRole = (typeof window !== 'undefined' && localStorage.getItem('user_role')) || 'spectateur';
 
   return (
-    <div className="relative w-full h-screen flex flex-col justify-end bg-black">
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col justify-end bg-black touch-none select-none"
+      style={{
+        minHeight: '100vh',
+        minWidth: '100vw',
+        height: '100dvh',
+        width: '100vw',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'none',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+      }}
+    >
       {/* Barre d’onglets TikTok-like */}
       <div className="absolute top-0 left-0 w-full flex justify-center items-center gap-4 z-50 pt-2">
         <span className="text-xs text-white/80 font-bold px-2">LIVE</span>
