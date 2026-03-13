@@ -200,7 +200,6 @@ export default function CameraCapture() {
       </div>
       {mode === "video" && recording && (
         <div className="w-full h-2 bg-gray-700">
-          {/* Progress bar for video */}
           <div className="h-2 bg-red-500" style={{ width: `${progress * 100}%` }} />
         </div>
       )}
