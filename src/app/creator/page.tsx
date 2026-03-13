@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState, Suspense } from "react";
 import CreatorGallery from "./gallery";
 import { supabaseClient } from "../../lib/supabaseClient";
