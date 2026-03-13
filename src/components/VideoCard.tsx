@@ -18,6 +18,7 @@ interface VideoProps {
   whatsapp: string;
   messages?: VideoMessage[];
   children?: React.ReactNode;
+  videoRef?: (el: HTMLVideoElement | null) => void;
 }
 
 function generatePassword(length = 8) {
@@ -27,7 +28,7 @@ function generatePassword(length = 8) {
   return pwd;
 }
 
-export default function VideoCard({ src, creator, whatsapp, messages = [], children }: VideoProps) {
+export default function VideoCard({ src, creator, whatsapp, messages = [], children, videoRef }: VideoProps) {
   const router = useRouter();
   const [showSignup, setShowSignup] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -50,15 +51,25 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
   const [chatOpen, setChatOpen] = React.useState(true);
   const [shareOpen, setShareOpen] = React.useState(false);
   // Gestion du son vidéo
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const localVideoRef = React.useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = React.useState(false);
   const toggleMute = () => {
     setIsMuted((m) => {
       const newMute = !m;
-      if (videoRef.current) videoRef.current.muted = newMute;
+      if (localVideoRef.current) localVideoRef.current.muted = newMute;
       return newMute;
     });
   };
+
+  // Permettre le contrôle du ref parent (pour auto-play/pause)
+  useEffect(() => {
+    if (videoRef) {
+      videoRef(localVideoRef.current);
+    }
+    return () => {
+      if (videoRef) videoRef(null);
+    };
+  }, [videoRef]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -237,7 +248,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
             playsInline
             onError={() => setError(true)}
             controls
-            ref={videoRef}
+            ref={localVideoRef}
             muted={isMuted}
           />
           {/* Bouton son flottant */}
