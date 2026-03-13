@@ -50,138 +50,139 @@ export default function CameraCapture() {
       if (src) setReuseMusic(src);
     }
   }, []);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [mode, setMode] = useState<Mode>("photo");
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
-  const [photoTimestamp, setPhotoTimestamp] = useState<number | null>(null);
-  const [recording, setRecording] = useState(false);
-  const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
-  const [videoTimestamp, setVideoTimestamp] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [timer, setTimer] = useState(0);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [chunks, setChunks] = useState<Blob[]>([]);
-  const maxDuration = 300; // 5 minutes in seconds
-
-  // Camera access
-  useEffect(() => {
-    async function getCamera() {
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: mode === "video" });
-        setStream(s);
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
-        }
-      } catch (e) {
-        alert("Impossible d'accéder à la caméra.");
-      }
-    }
-    getCamera();
-    return () => {
-      stream?.getTracks().forEach(track => track.stop());
-    };
-    // eslint-disable-next-line
-  }, [mode]);
-
-  // Video preview
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      // rien à faire ici, hooks déjà déclarés en haut
-    }
-  }, [stream]);
-
-  // Timer for video
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (recording) {
-      interval = setInterval(() => {
-        setTimer(t => {
-          if (t >= maxDuration) {
-            handleStopRecording();
-            return t;
-          }
-          setProgress((t + 1) / maxDuration);
-          return t + 1;
-        });
-      }, 1000);
-    } else {
-      setTimer(0);
-      setProgress(0);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-    // eslint-disable-next-line
-  }, [recording]);
-
-  // Start video recording
-  const handleStartRecording = () => {
-    if (!stream) return;
-    const recorder = new MediaRecorder(stream, { mimeType: "video/mp4" });
-    setMediaRecorder(recorder);
-    setChunks([]);
-    recorder.ondataavailable = e => {
-      if (e.data.size > 0) setChunks(prev => [...prev, e.data]);
-    };
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "video/mp4" });
-      setRecordedVideo(URL.createObjectURL(blob));
-      setRecording(false);
-    };
-    recorder.start();
-    setRecording(true);
-  };
-
-  // Stop video recording
-  const handleStopRecording = () => {
-    mediaRecorder?.stop();
-    setRecording(false);
-  };
-
-  // Capture photo
-  const handleCapturePhoto = () => {
-    if (!videoRef.current) return;
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      setCapturedPhoto(canvas.toDataURL("image/jpeg"));
-      setPhotoTimestamp(Date.now());
-    }
-  };
-
-  // Mode switch
-  const handleModeSwitch = (newMode: Mode) => {
-    setMode(newMode);
-    setCapturedPhoto(null);
-    setRecordedVideo(null);
-    setRecording(false);
-    setTimer(0);
-    setProgress(0);
-  };
-
-  // Expiration automatique à 24h pour la photo
-  useEffect(() => {
-    if (photoTimestamp) {
-      const now = Date.now();
-      const expire = photoTimestamp + 24 * 60 * 60 * 1000;
-      if (now >= expire) {
-        setCapturedPhoto(null);
-        setPhotoTimestamp(null);
-      } else {
-        const timeout = setTimeout(() => {
-          setCapturedPhoto(null);
-          setPhotoTimestamp(null);
-        }, expire - now);
-        return () => clearTimeout(timeout);
-      }
-    }
-  }, [photoTimestamp]);
-
-  // Expiration automatique à 24h pour la vidéo
+  return (
+    <>
+      <div className="fixed inset-0 flex flex-col bg-black">
+        {/* Flèche retour */}
+        <button
+          className="absolute top-4 left-4 z-50 bg-white/80 rounded-full p-2 shadow border border-blue-200 hover:bg-blue-100 transition"
+          onClick={() => window.history.back()}
+          aria-label="Retour"
+        >
+          <svg width="28" height="28" fill="none" stroke="#2563eb" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        {/* Musique réutilisée */}
+        {reuseMusic && (
+          <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-black/90">
+            {/* Aperçu vidéo */}
+            <div className="w-[260px] h-[460px] bg-black rounded-3xl shadow-lg flex items-center justify-center mb-2 overflow-hidden">
+              {capturedPhoto ? (
+                <img src={capturedPhoto} alt="Preview" className="w-full h-full object-cover" />
+              ) : recordedVideo ? (
+                <video src={recordedVideo} controls className="w-full h-full object-cover" />
+              ) : (
+                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+              )}
+            </div>
+            {/* Timeline forme d’onde bleue + slider */}
+            <div className="w-[320px] flex flex-col items-center gap-2 mb-2">
+              {audioBuffer && (
+                <Waveform audioBuffer={audioBuffer} width={320} height={48} start={musicStart} end={musicEnd || musicDuration} />
+              )}
+              {musicDuration > 0 && (
+                <div className="flex flex-col gap-1 w-full">
+                  <div className="flex justify-between text-xs text-blue-700 font-bold">
+                    <span>Début: {formatTime(musicStart)}</span>
+                    <span>Fin: {formatTime(musicEnd)}</span>
+                  </div>
+                  <input type="range" min={0} max={musicEnd-1} value={musicStart} step={0.1} onChange={e => setMusicStart(Number(e.target.value))} />
+                  <input type="range" min={musicStart+1} max={musicDuration} value={musicEnd} step={0.1} onChange={e => setMusicEnd(Number(e.target.value))} />
+                  <div className="text-xs text-gray-600">Durée sélectionnée : {formatTime(musicEnd-musicStart)}</div>
+                </div>
+              )}
+            </div>
+            {/* Boutons édition style TikTok */}
+            <div className="flex justify-between w-full max-w-xs mt-4 gap-2">
+              <button className="flex-1 bg-gray-800 text-white py-2 rounded-xl font-bold">Modifier</button>
+              <button className="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold">Son</button>
+              <button className="flex-1 bg-gray-800 text-white py-2 rounded-xl font-bold">Texte</button>
+              <button className="flex-1 bg-gray-800 text-white py-2 rounded-xl font-bold">Effets</button>
+              <button className="flex-1 bg-gray-800 text-white py-2 rounded-xl font-bold">Magie</button>
+            </div>
+            {/* Valider ou annuler */}
+            <div className="flex gap-4 mt-6">
+              <button className="bg-green-600 text-white px-6 py-2 rounded font-bold" onClick={() => setReuseMusic(null)}>Valider</button>
+              <button className="bg-gray-400 text-white px-6 py-2 rounded font-bold" onClick={() => setReuseMusic(null)}>Annuler</button>
+            </div>
+          </div>
+        )}
+        {!capturedPhoto && !recordedVideo ? (
+          <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+        ) : null}
+        {capturedPhoto ? (
+          <img src={capturedPhoto} alt="Preview" className="w-full h-full object-cover" />
+        ) : null}
+        {recordedVideo ? (
+          <video src={recordedVideo} controls className="w-full h-full object-cover" />
+        ) : null}
+      </div>
+      {/* Progress bar for video */}
+      {mode === "video" && recording && (
+        <div className="w-full h-2 bg-gray-700">
+          <div className="h-2 bg-red-500" style={{ width: `${progress * 100}%` }} />
+        </div>
+      )}
+      {/* Mode selector */}
+      <div className="flex justify-center gap-8 py-4">
+        {MODES.map(m => (
+          <button
+            key={m}
+            className={`text-lg font-bold px-4 py-2 rounded ${mode === m ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+            onClick={() => handleModeSwitch(m)}
+          >
+            {m.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      {/* Capture button */}
+      <div className="flex justify-center items-center py-4">
+        {mode === "photo" && !capturedPhoto && (
+          <button
+            className="w-16 h-16 rounded-full bg-white border-4 border-blue-600 flex items-center justify-center text-2xl font-bold shadow-lg"
+            onClick={handleCapturePhoto}
+          >
+            📸
+          </button>
+        )}
+        {mode === "video" && !recording && !recordedVideo && (
+          <button
+            className="w-16 h-16 rounded-full bg-red-600 border-4 border-white flex items-center justify-center text-2xl font-bold shadow-lg animate-pulse"
+            onClick={handleStartRecording}
+          >
+            ●
+          </button>
+        )}
+        {mode === "video" && recording && (
+          <button
+            className="w-16 h-16 rounded-full bg-gray-700 border-4 border-white flex items-center justify-center text-2xl font-bold shadow-lg"
+            onClick={handleStopRecording}
+          >
+            ■
+          </button>
+        )}
+      </div>
+      {/* Upload & Gallery */}
+      <div className="flex justify-center gap-4 py-2">
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded font-bold shadow"
+          onClick={handleUpload}
+          disabled={uploading || (!capturedPhoto && !recordedVideo)}
+        >
+          {uploading ? "Publication..." : "Publier"}
+        </button>
+        <label className="bg-gray-200 text-gray-700 px-6 py-2 rounded font-bold shadow cursor-pointer">
+          Galerie
+          <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileInput} />
+        </label>
+      </div>
+      {/* Upload message */}
+      {uploadMsg && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-blue-700 px-6 py-2 rounded shadow-lg font-bold z-[99999]">
+          {uploadMsg}
+        </div>
+      )}
+    </>
+  );
   useEffect(() => {
     if (videoTimestamp) {
       const now = Date.now();
