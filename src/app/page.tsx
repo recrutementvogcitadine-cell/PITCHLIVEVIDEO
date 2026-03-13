@@ -89,6 +89,10 @@ export default function Home() {
       })
     : [];
   const [messages, setMessages] = useState<any[]>([]);
+  // État pour afficher la modale d'upload vidéo
+  const [showUpload, setShowUpload] = useState(false);
+  // Lazy import CameraCapture pour éviter SSR
+  const CameraCapture = React.useMemo(() => typeof window !== 'undefined' ? require('../components/CameraCapture').default : null, []);
   // Index de la vidéo actuellement affichée
   const [currentIdx, setCurrentIdx] = useState(0);
   const currentVideo = validVideos[currentIdx] || null;
@@ -103,10 +107,29 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-black">
-      <div className="w-full flex justify-end p-4">
+      <div className="w-full flex justify-end gap-2 p-4">
+        <button
+          className="bg-green-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-green-700 transition"
+          onClick={() => setShowUpload(true)}
+        >
+          📤 Publier une vidéo
+        </button>
         <a href="/camera" className="bg-blue-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-blue-700 transition">📷 Accéder à la caméra</a>
       </div>
       <div className="flex-1 flex items-center justify-center">
+        {/* Modale d'upload vidéo */}
+        {showUpload && CameraCapture && (
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/80">
+            <div className="relative w-full max-w-md mx-auto">
+              <button
+                className="absolute top-2 right-2 bg-gray-800 text-white rounded-full w-8 h-8 flex items-center justify-center z-10"
+                onClick={() => setShowUpload(false)}
+                aria-label="Fermer"
+              >✕</button>
+              <CameraCapture />
+            </div>
+          </div>
+        )}
         {/* Fiche d'inscription globale, transparente et flottante */}
         {hydrated && showSignup && (
           <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">

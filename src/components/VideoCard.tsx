@@ -23,6 +23,8 @@ interface VideoProps {
 
 
 
+// Composant principal VideoCard
+const VideoCard: React.FC<VideoProps> = ({ src, creator, whatsapp, messages = [], children, videoRef }) => {
   // const router = useRouter();
   const [error, setError] = React.useState(false);
   const [liked, setLiked] = useState(false);
@@ -52,8 +54,6 @@ interface VideoProps {
       if (videoRef) videoRef(null);
     };
   }, [videoRef]);
-
-
 
   useEffect(() => {
     let ignore = false;
@@ -371,4 +371,6 @@ interface VideoProps {
       </div>
     </div>
   );
-}
+};
+
+export default VideoCard;
