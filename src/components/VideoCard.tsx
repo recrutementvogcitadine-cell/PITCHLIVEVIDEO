@@ -51,7 +51,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
   const [shareOpen, setShareOpen] = React.useState(false);
   // Gestion du son vidéo
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = React.useState(true);
+  const [isMuted, setIsMuted] = React.useState(false);
   const toggleMute = () => {
     setIsMuted((m) => {
       const newMute = !m;
@@ -236,8 +236,9 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
             loop
             playsInline
             onError={() => setError(true)}
-            muted={isMuted}
+            controls
             ref={videoRef}
+            muted={isMuted}
           />
           {/* Bouton son flottant */}
           <button
