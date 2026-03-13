@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { supabaseClient } from "../lib/supabaseClient";
 import { getShareCount, recordShare } from "../lib/shareUtils";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 
 interface VideoMessage {
   id: string;
@@ -21,27 +21,9 @@ interface VideoProps {
   videoRef?: (el: HTMLVideoElement | null) => void;
 }
 
-function generatePassword(length = 8) {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let pwd = '';
-  for (let i = 0; i < length; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
-  return pwd;
-}
 
-export default function VideoCard({ src, creator, whatsapp, messages = [], children, videoRef }: VideoProps) {
-  const router = useRouter();
-  const [showSignup, setShowSignup] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !localStorage.getItem('user_registered');
-    }
-    return true;
-  });
-  const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState(generatePassword());
-  const [showPwd, setShowPwd] = useState(false);
 
-  const [signupError, setSignupError] = useState<string | null>(null);
+  // const router = useRouter();
   const [error, setError] = React.useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -71,32 +53,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
     };
   }, [videoRef]);
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setSignupError(null);
-    // Vérifier unicité pseudo
-    const { data: existing } = await supabaseClient.from('users').select('id').eq('username', username);
-    if (existing && existing.length > 0) {
-      setSignupError('Ce nom d’utilisateur est déjà pris.');
-      return;
-    }
-    // Envoi à Supabase
-    const { error } = await supabaseClient.from('users').insert({
-      username,
-      phone,
-      password,
-    });
-    if (error) {
-      setSignupError("Erreur lors de l'inscription : " + error.message);
-      return;
-    }
-    // Connexion automatique et accès au mur
-    localStorage.setItem('user_registered', '1');
-    localStorage.setItem('user_pseudo', username);
-    localStorage.setItem('user_phone', phone);
-    setShowSignup(false);
-    router.push('/mur');
-  }
+
 
   useEffect(() => {
     let ignore = false;
@@ -223,7 +180,7 @@ export default function VideoCard({ src, creator, whatsapp, messages = [], child
 
   return (
     <div className="relative w-full h-screen flex flex-col justify-end bg-black">
-      // ...fiche d'inscription supprimée, car globale dans page.tsx...
+      {/* fiche d'inscription supprimée, car globale dans page.tsx */}
       {/* Profil créateur en overlay haut gauche + spectateurs */}
       <div className="absolute top-4 left-4 z-40 flex items-center gap-3 bg-black/60 rounded-full px-3 py-1 shadow-md">
         {/* Avatar généré (initiale) */}
