@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import CreatorGallery from "./gallery";
 import { supabaseClient } from "../../lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
