@@ -2,17 +2,19 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import CreatorGallery from "./gallery";
+import { supabaseClient } from "../../lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function CreatorProfilePageContent() {
+    // Hooks Next.js
+    const router = useRouter();
+    const params = useSearchParams();
+    // Récupérer le pseudo du créateur depuis l'URL (?u=...)
+    const username = (params && params.get && params.get("u")) || (typeof window !== 'undefined' ? localStorage.getItem('user_pseudo') : "");
     // État pour édition du pseudo
     const [editPseudo, setEditPseudo] = useState(false);
-    const [newPseudo, setNewPseudo] = useState(username);
+    const [newPseudo, setNewPseudo] = useState<string>(username || "");
     const [updateMsg, setUpdateMsg] = useState<string|null>(null);
-  const router = useRouter();
-  const params = useSearchParams();
-  // Récupérer le pseudo du créateur depuis l'URL (?u=...)
-  const username = (params && params.get && params.get("u")) || (typeof window !== 'undefined' ? localStorage.getItem('user_pseudo') : "");
 
   // Infos profil créateur
   const [profile, setProfile] = useState<{ avatar_url?: string; bio?: string; followers: number }>({ followers: 0 });

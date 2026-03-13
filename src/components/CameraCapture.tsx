@@ -1,10 +1,20 @@
 // Génère une forme d’onde simple (bleue) à partir d’un buffer audio
-function Waveform({ audioBuffer, width = 320, height = 48, start = 0, end, onSelect }) {
-  const ref = React.useRef(null);
+type WaveformProps = {
+  audioBuffer: AudioBuffer;
+  width?: number;
+  height?: number;
+  start?: number;
+  end: number;
+  onSelect?: () => void;
+};
+
+function Waveform({ audioBuffer, width = 320, height = 48, start = 0, end, onSelect }: WaveformProps) {
+  const ref = React.useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
     if (!audioBuffer || !ref.current) return;
     const canvas = ref.current;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.clearRect(0, 0, width, height);
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 2;
@@ -23,17 +33,7 @@ function Waveform({ audioBuffer, width = 320, height = 48, start = 0, end, onSel
   // Drag handles
   return <canvas ref={ref} width={width} height={height} style={{ width, height, background: '#e0e7ff', borderRadius: 8 }} />;
 }
-  // Pour la forme d’onde
-  const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
-  useEffect(() => {
-    if (!reuseMusic) return;
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    fetch(reuseMusic)
-      .then(r => r.arrayBuffer())
-      .then(buf => ctx.decodeAudioData(buf))
-      .then(setAudioBuffer)
-      .catch(() => setAudioBuffer(null));
-  }, [reuseMusic]);
+// ...existing code...
 import React, { useRef, useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -42,14 +42,96 @@ const MODES = ["photo", "video"] as const;
 type Mode = typeof MODES[number];
 
 export default function CameraCapture() {
-  // Musique réutilisée
-  const [reuseMusic, setReuseMusic] = useState<string | null>(null);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const src = localStorage.getItem('reuse_music_src');
-      if (src) setReuseMusic(src);
-    }
-  }, []);
+              const [uploading, setUploading] = useState(false);
+              const [uploadMsg, setUploadMsg] = useState<string | null>(null);
+            // Capture photo
+            function handleCapturePhoto() {
+              if (!videoRef.current) return;
+              const canvas = document.createElement("canvas");
+              canvas.width = videoRef.current.videoWidth;
+              canvas.height = videoRef.current.videoHeight;
+              const ctx = canvas.getContext("2d");
+              if (ctx) {
+                ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                setCapturedPhoto(canvas.toDataURL("image/jpeg"));
+                setPhotoTimestamp(Date.now());
+              }
+            }
+
+            // Start video recording
+            function handleStartRecording() {
+              if (!stream) return;
+              const recorder = new MediaRecorder(stream, { mimeType: "video/mp4" });
+              setMediaRecorder(recorder);
+              setChunks([]);
+              recorder.ondataavailable = e => {
+                if (e.data.size > 0) setChunks(prev => [...prev, e.data]);
+              };
+              recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: "video/mp4" });
+                setRecordedVideo(URL.createObjectURL(blob));
+                setRecording(false);
+              };
+              recorder.start();
+              setRecording(true);
+            }
+
+            // Stop video recording
+            function handleStopRecording() {
+              mediaRecorder?.stop();
+              setRecording(false);
+            }
+          function handleModeSwitch(newMode: Mode) {
+            setMode(newMode);
+            setCapturedPhoto(null);
+            setRecordedVideo(null);
+            setRecording(false);
+            setTimer(0);
+            setProgress(0);
+          }
+        // États pour la musique réutilisée et l'édition
+        const [musicStart, setMusicStart] = useState(0);
+        const [musicEnd, setMusicEnd] = useState(0);
+        const [musicDuration, setMusicDuration] = useState(0);
+        function formatTime(sec: number) {
+          const m = Math.floor(sec / 60);
+          const s = Math.floor(sec % 60);
+          return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+      // États principaux pour le média
+      const videoRef = useRef<HTMLVideoElement>(null);
+      const [mode, setMode] = useState<Mode>("photo");
+      const [stream, setStream] = useState<MediaStream | null>(null);
+      const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+      const [photoTimestamp, setPhotoTimestamp] = useState<number | null>(null);
+      const [recording, setRecording] = useState(false);
+      const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
+      const [videoTimestamp, setVideoTimestamp] = useState<number | null>(null);
+      const [progress, setProgress] = useState(0);
+      const [timer, setTimer] = useState(0);
+      const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+      const [chunks, setChunks] = useState<Blob[]>([]);
+      const maxDuration = 300; // 5 minutes in seconds
+    // Musique réutilisée
+    const [reuseMusic, setReuseMusic] = useState<string | null>(null);
+    // Pour la forme d’onde
+    const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
+    useEffect(() => {
+      if (!reuseMusic) return;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      fetch(reuseMusic)
+        .then(r => r.arrayBuffer())
+        .then(buf => ctx.decodeAudioData(buf))
+        .then(setAudioBuffer)
+        .catch(() => setAudioBuffer(null));
+    }, [reuseMusic]);
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const src = localStorage.getItem('reuse_music_src');
+        if (src) setReuseMusic(src);
+      }
+    }, []);
   return (
     <>
       <div className="fixed inset-0 flex flex-col bg-black">
@@ -67,18 +149,18 @@ export default function CameraCapture() {
             {/* Aperçu vidéo */}
             <div className="w-[260px] h-[460px] bg-black rounded-3xl shadow-lg flex items-center justify-center mb-2 overflow-hidden">
               {capturedPhoto ? (
-                <img src={capturedPhoto} alt="Preview" className="w-full h-full object-cover" />
+                <img src={capturedPhoto ?? ''} alt="Preview" className="w-full h-full object-cover" />
               ) : recordedVideo ? (
-                <video src={recordedVideo} controls className="w-full h-full object-cover" />
+                <video src={recordedVideo ?? ''} controls className="w-full h-full object-cover" />
               ) : (
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
               )}
             </div>
             {/* Timeline forme d’onde bleue + slider */}
             <div className="w-[320px] flex flex-col items-center gap-2 mb-2">
-              {audioBuffer && (
-                <Waveform audioBuffer={audioBuffer} width={320} height={48} start={musicStart} end={musicEnd || musicDuration} />
-              )}
+              {audioBuffer !== null ? (
+                <Waveform audioBuffer={audioBuffer!} width={320} height={48} start={musicStart} end={musicEnd || musicDuration} />
+              ) : null}
               {musicDuration > 0 && (
                 <div className="flex flex-col gap-1 w-full">
                   <div className="flex justify-between text-xs text-blue-700 font-bold">
@@ -110,15 +192,15 @@ export default function CameraCapture() {
           <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
         ) : null}
         {capturedPhoto ? (
-          <img src={capturedPhoto} alt="Preview" className="w-full h-full object-cover" />
+          <img src={capturedPhoto ?? ''} alt="Preview" className="w-full h-full object-cover" />
         ) : null}
         {recordedVideo ? (
-          <video src={recordedVideo} controls className="w-full h-full object-cover" />
+          <video src={recordedVideo ?? ''} controls className="w-full h-full object-cover" />
         ) : null}
       </div>
-      {/* Progress bar for video */}
       {mode === "video" && recording && (
         <div className="w-full h-2 bg-gray-700">
+          {/* Progress bar for video */}
           <div className="h-2 bg-red-500" style={{ width: `${progress * 100}%` }} />
         </div>
       )}
@@ -200,9 +282,6 @@ export default function CameraCapture() {
     }
   }, [videoTimestamp]);
 
-  // Upload logic
-  const [uploading, setUploading] = useState(false);
-  const [uploadMsg, setUploadMsg] = useState<string | null>(null);
   async function handleUpload() {
     setUploading(true);
     setUploadMsg(null);
@@ -296,9 +375,9 @@ export default function CameraCapture() {
           {/* Aperçu vidéo */}
           <div className="w-[260px] h-[460px] bg-black rounded-3xl shadow-lg flex items-center justify-center mb-2 overflow-hidden">
             {capturedPhoto ? (
-              <img src={capturedPhoto} alt="Preview" className="w-full h-full object-cover" />
+              <img src={capturedPhoto ?? ''} alt="Preview" className="w-full h-full object-cover" />
             ) : recordedVideo ? (
-              <video src={recordedVideo} controls className="w-full h-full object-cover" />
+              <video src={recordedVideo ?? ''} controls className="w-full h-full object-cover" />
             ) : (
               <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
             )}
@@ -306,7 +385,7 @@ export default function CameraCapture() {
           {/* Timeline forme d’onde bleue + slider */}
           <div className="w-[320px] flex flex-col items-center gap-2 mb-2">
             {audioBuffer && (
-              <Waveform audioBuffer={audioBuffer} width={320} height={48} start={musicStart} end={musicEnd || musicDuration} />
+              <Waveform audioBuffer={audioBuffer!} width={320} height={48} start={musicStart} end={musicEnd || musicDuration} />
             )}
             {musicDuration > 0 && (
               <div className="flex flex-col gap-1 w-full">
@@ -335,17 +414,15 @@ export default function CameraCapture() {
           </div>
         </div>
       )}
-          {!capturedPhoto && !recordedVideo ? (
-            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-          ) : null}
-          {capturedPhoto ? (
-            <img src={capturedPhoto} alt="Preview" className="w-full h-full object-cover" />
-          ) : null}
-          {recordedVideo ? (
-            <video src={recordedVideo} controls className="w-full h-full object-cover" />
-          ) : null}
-        </div>
-      {/* Progress bar for video */}
+      {!capturedPhoto && !recordedVideo ? (
+        <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+      ) : null}
+      {capturedPhoto ? (
+        <img src={capturedPhoto ?? ''} alt="Preview" className="w-full h-full object-cover" />
+      ) : null}
+      {recordedVideo ? (
+        <video src={recordedVideo ?? ''} controls className="w-full h-full object-cover" />
+      ) : null}
       {mode === "video" && recording && (
         <div className="w-full h-2 bg-gray-700">
           <div className="h-2 bg-red-500" style={{ width: `${progress * 100}%` }} />
