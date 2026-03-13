@@ -1,32 +1,28 @@
+
+// Ce composant est client-only, tous les hooks sont autorisés
 "use client";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import CreatorGallery from "./gallery";
 import { supabaseClient } from "../../lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function CreatorProfilePageContent() {
-    // Hooks Next.js
-    const router = useRouter();
-    const params = useSearchParams();
-    // Récupérer le pseudo du créateur depuis l'URL (?u=...)
-    const username = (params && params.get && params.get("u")) || (typeof window !== 'undefined' ? localStorage.getItem('user_pseudo') : "");
-    // État pour édition du pseudo
-    const [editPseudo, setEditPseudo] = useState(false);
-    const [newPseudo, setNewPseudo] = useState<string>(username || "");
-    const [updateMsg, setUpdateMsg] = useState<string|null>(null);
-
-  // Infos profil créateur
+export default function CreatorProfilePage() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const username = (params && params.get && params.get("u")) || (typeof window !== 'undefined' ? localStorage.getItem('user_pseudo') : "");
+  const [editPseudo, setEditPseudo] = useState(false);
+  const [newPseudo, setNewPseudo] = useState<string>(username || "");
+  const [updateMsg, setUpdateMsg] = useState<string|null>(null);
   const [profile, setProfile] = useState<{ avatar_url?: string; bio?: string; followers: number }>({ followers: 0 });
+
   useEffect(() => {
     async function fetchProfile() {
       if (!username) return;
-      // Récupérer avatar, bio
       const { data: userData } = await supabaseClient
         .from('users')
         .select('avatar_url, bio')
         .eq('username', username)
         .maybeSingle();
-      // Compter les followers
       const { count: followersCount } = await supabaseClient
         .from('followers')
         .select('*', { count: 'exact', head: true })
@@ -44,7 +40,6 @@ function CreatorProfilePageContent() {
     return <div className="flex items-center justify-center h-96 text-white">Aucun créateur sélectionné.</div>;
   }
 
-  // Vérifier si c’est le mur de l’utilisateur connecté
   const isOwnProfile = typeof window !== 'undefined' && localStorage.getItem('user_pseudo') === username;
 
   return (
@@ -68,7 +63,6 @@ function CreatorProfilePageContent() {
                 e.preventDefault();
                 setUpdateMsg(null);
                 if (!newPseudo.trim()) return;
-                // Update Supabase
                 const { error } = await supabaseClient
                   .from('users')
                   .update({ username: newPseudo })
@@ -76,11 +70,9 @@ function CreatorProfilePageContent() {
                 if (!error) {
                   setUpdateMsg('Pseudo modifié !');
                   setEditPseudo(false);
-                  // Mettre à jour localStorage
                   if (typeof window !== 'undefined') {
                     localStorage.setItem('user_pseudo', newPseudo);
                   }
-                  // Recharger la page avec le nouveau pseudo dans l’URL
                   window.location.href = `/creator?u=${encodeURIComponent(newPseudo)}`;
                 } else {
                   setUpdateMsg("Erreur : " + error.message);
@@ -126,13 +118,5 @@ function CreatorProfilePageContent() {
         <CreatorGallery username={username} />
       </div>
     </div>
-  );
-}
-
-export default function CreatorProfilePage() {
-  return (
-    <Suspense fallback={<div>Chargement…</div>}>
-      <CreatorProfilePageContent />
-    </Suspense>
   );
 }
