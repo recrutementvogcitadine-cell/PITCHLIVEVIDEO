@@ -50,10 +50,15 @@ const VideoCard: React.FC<VideoProps> = ({ src, creator, whatsapp, messages = []
     if (videoRef) {
       videoRef(localVideoRef.current);
     }
+    // Remettre la vidéo à zéro à chaque changement de src
+    if (localVideoRef.current) {
+      localVideoRef.current.currentTime = 0;
+      localVideoRef.current.play();
+    }
     return () => {
       if (videoRef) videoRef(null);
     };
-  }, [videoRef]);
+  }, [videoRef, src]);
 
   useEffect(() => {
     let ignore = false;
@@ -181,8 +186,54 @@ const VideoCard: React.FC<VideoProps> = ({ src, creator, whatsapp, messages = []
   // Détection d'enregistrement (si src contient 'blob:' ou 'recording')
   const isRecording = src.startsWith('blob:') || src.includes('recording');
 
+
   // Détection du rôle utilisateur (spectateur, créateur, admin)
   const userRole = (typeof window !== 'undefined' && localStorage.getItem('user_role')) || 'spectateur';
+
+  // Gestion du suivi (follow)
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  useEffect(() => {
+    if (!userId || !creator || userId === creator) return;
+    let ignore = false;
+    async function checkFollow() {
+      const { data, error } = await supabaseClient
+        .from('followers')
+        .select('*')
+        .eq('follower_id', userId)
+        .eq('followed_id', creator)
+        .maybeSingle();
+      if (!ignore && data) setIsFollowing(true);
+      if (!ignore && !data) setIsFollowing(false);
+    }
+    checkFollow();
+    // Optionnel : abonnement temps réel
+    const channel = supabaseClient
+      .channel('public:followers')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'followers', filter: `follower_id=eq.${userId},followed_id=eq.${creator}` }, (payload) => {
+        checkFollow();
+      })
+      .subscribe();
+    return () => {
+      ignore = true;
+      supabaseClient.removeChannel(channel);
+    };
+  }, [userId, creator]);
+
+  const handleFollow = async () => {
+    if (!userId || !creator || userId === creator) return;
+    setFollowLoading(true);
+    if (isFollowing) {
+      // Unfollow
+      await supabaseClient.from('followers').delete().eq('follower_id', userId).eq('followed_id', creator);
+      setIsFollowing(false);
+    } else {
+      // Follow (permanent)
+      await supabaseClient.from('followers').insert({ follower_id: userId, followed_id: creator });
+      setIsFollowing(true);
+    }
+    setFollowLoading(false);
+  };
 
   return (
     <div
@@ -202,13 +253,33 @@ const VideoCard: React.FC<VideoProps> = ({ src, creator, whatsapp, messages = []
         paddingRight: 'env(safe-area-inset-right)',
       }}
     >
-      {/* Barre d’onglets TikTok-like */}
+      {/* Barre d’onglets TikTok-like + loupe recherche */}
       <div className="absolute top-0 left-0 w-full flex justify-center items-center gap-4 z-50 pt-2">
         <span className="text-xs text-white/80 font-bold px-2">LIVE</span>
         <span className="text-xs text-white/80 font-bold px-2">Explorer</span>
         <span className="text-xs text-white/80 font-bold px-2">Suivis</span>
-        <span className="text-base text-white font-bold border-b-2 border-white px-2">Pour toi</span>
+        <a href="/search" className="absolute right-4 top-0 p-2" title="Rechercher un créateur ou une vidéo">
+          <svg width="28" height="28" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </a>
       </div>
+      {/* Disque musique réutilisable */}
+      <button
+        className="fixed bottom-6 right-6 z-50 flex flex-col items-center group"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
+        aria-label="Réutiliser la musique"
+        onClick={() => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('reuse_music_src', src);
+            window.location.href = '/?reuse_music=1';
+          }
+        }}
+      >
+        <span className="relative flex items-center justify-center">
+          <span className="animate-spin-slow block w-14 h-14 rounded-full border-4 border-blue-400 border-t-white bg-gradient-to-br from-blue-400 to-blue-200 shadow-lg" />
+          <svg className="absolute w-7 h-7 text-blue-700" fill="currentColor" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </span>
+        <span className="text-xs text-white font-bold mt-1 group-hover:underline">Réutiliser musique</span>
+      </button>
       {/* Icône caméra rouge si enregistrement */}
       {isRecording && (
         <div className="absolute top-6 right-6 z-50 flex items-center gap-2 animate-pulse">
@@ -280,12 +351,13 @@ const VideoCard: React.FC<VideoProps> = ({ src, creator, whatsapp, messages = []
         {/* Bouton suivre (visible pour spectateurs, non pour soi-même) */}
         {userRole === 'spectateur' && userId !== creator && (
           <button
-            className="flex flex-col items-center p-2 rounded-full bg-pink-500 text-white shadow transition hover:bg-pink-600"
-            aria-label="Suivre"
-            onClick={() => alert('Fonction Suivre à implémenter')}
+            className={`flex flex-col items-center p-2 rounded-full shadow transition ${isFollowing ? 'bg-gray-300 text-gray-700' : 'bg-pink-500 text-white hover:bg-pink-600'}`}
+            aria-label={isFollowing ? 'Ne plus suivre' : 'Suivre'}
+            onClick={handleFollow}
+            disabled={followLoading}
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 13 0"/></svg>
-            <span className="text-xs font-bold">Suivre</span>
+            <span className="text-xs font-bold">{isFollowing ? 'Suivi' : 'Suivre'}</span>
           </button>
         )}
         {/* Accès galerie publique */}
@@ -362,6 +434,11 @@ const VideoCard: React.FC<VideoProps> = ({ src, creator, whatsapp, messages = []
           <div className="text-red-500 font-bold">Vidéo non disponible</div>
         )}
       </div>
+      {/* Animation spin lente */}
+      <style jsx global>{`
+        @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+      `}</style>
       {/* Chat overlay : togglable avec animation */}
       <div
         className={`transition-all duration-300 ease-in-out ${chatOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-8 pointer-events-none'} w-full`}

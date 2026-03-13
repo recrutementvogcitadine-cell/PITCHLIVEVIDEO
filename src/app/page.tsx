@@ -1,6 +1,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import videos from "../../data/videos.json";
 import VideoCard from "../components/VideoCard";
 import ChatBox from "../components/ChatBox";
@@ -107,14 +108,29 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-black">
-      <div className="w-full flex justify-end gap-2 p-4">
+      <div className="w-full flex justify-between items-center gap-2 p-4 relative">
+        {/* Flèche retour */}
         <button
-          className="bg-green-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-green-700 transition"
-          onClick={() => setShowUpload(true)}
+          className="absolute top-1 left-1 z-50 bg-white/80 rounded-full p-2 shadow border border-blue-200 hover:bg-blue-100 transition"
+          onClick={() => window.history.back()}
+          aria-label="Retour"
         >
-          📤 Publier une vidéo
+          <svg width="28" height="28" fill="none" stroke="#2563eb" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <a href="/camera" className="bg-blue-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-blue-700 transition">📷 Accéder à la caméra</a>
+        <div className="flex-1 flex gap-2">
+          <button
+            className="bg-green-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-green-700 transition"
+            onClick={() => setShowUpload(true)}
+          >
+            📤 Publier une vidéo
+          </button>
+          <a href="/camera" className="bg-blue-600 text-white px-4 py-2 rounded font-bold shadow hover:bg-blue-700 transition">📷 Accéder à la caméra</a>
+        </div>
+        <Link href="/search" className="p-2" aria-label="Recherche">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-blue-700 hover:text-blue-900 transition">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+          </svg>
+        </Link>
       </div>
       <div className="flex-1 flex items-center justify-center">
         {/* Modale d'upload vidéo */}

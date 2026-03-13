@@ -19,7 +19,8 @@ interface ChatBoxProps {
 export default function ChatBox({ videoId, creator }: ChatBoxProps) {
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [input, setInput] = React.useState("");
-  const [author, setAuthor] = React.useState("");
+  // Pseudo utilisateur récupéré automatiquement
+  const author = (typeof window !== 'undefined' && localStorage.getItem('user_pseudo')) || "";
   const [fetchError, setFetchError] = React.useState<string | null>(null);
   const [realtimeStatus, setRealtimeStatus] = React.useState<'connecting'|'open'|'closed'|'error'>('connecting');
   const [restStatus, setRestStatus] = React.useState<'ok'|'error'|'pending'>('pending');
@@ -67,25 +68,22 @@ export default function ChatBox({ videoId, creator }: ChatBoxProps) {
   // Envoi d'un message
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleSend called', { input, author, videoId });
-        setSendError(null);
-        if (!input.trim() || !author.trim()) {
-          setSendError("Pseudo et message obligatoires");
-          return;
-        }
+    setSendError(null);
+    if (!input.trim() || !author.trim()) {
+      setSendError("Message obligatoire");
+      return;
+    }
     const { error, data } = await supabase.from('messages').insert({
       video_id: videoId,
       creator: author,
       message: input,
     });
     if (error) {
-      console.error('Supabase insert error:', error);
-          setSendError('Erreur lors de l\'envoi du message : ' + error.message);
-          return;
+      setSendError('Erreur lors de l\'envoi du message : ' + error.message);
+      return;
     }
-    console.log('Supabase insert success', data);
     setInput("");
-        setSendError(null);
+    setSendError(null);
   };
 
   return (
@@ -106,15 +104,6 @@ export default function ChatBox({ videoId, creator }: ChatBoxProps) {
       </div>
       {/* Champ de saisie moderne, flottant */}
       <form onSubmit={handleSend} className="flex gap-1 items-center bg-black/40 rounded-2xl px-2 py-1 mt-1 shadow-none border-none">
-        <input
-          id="chat-pseudo"
-          type="text"
-          placeholder="Pseudo"
-          value={author}
-          onChange={e => setAuthor(e.target.value)}
-          className="rounded-2xl px-2 py-1 text-xs bg-white/80 text-black placeholder:text-gray-400 border-none outline-none w-16 flex-shrink-0"
-          style={{minWidth:'0'}}
-        />
         <input
           type="text"
           placeholder="Message..."
