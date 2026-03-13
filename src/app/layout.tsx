@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FullscreenWrapper from "../components/FullscreenWrapper";
+import BottomNav from "../components/BottomNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className="bg-black text-white min-h-screen w-full overflow-hidden touch-none select-none" style={{ overscrollBehavior: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', WebkitOverflowScrolling: 'touch', height: '100%', background: '#000' }}>
         <FullscreenWrapper />
         {children}
+        <BottomNav />
       </body>
     </html>
   );
