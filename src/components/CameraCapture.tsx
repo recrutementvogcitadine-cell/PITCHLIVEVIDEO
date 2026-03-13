@@ -344,7 +344,6 @@ export default function CameraCapture() {
             <video src={recordedVideo} controls className="w-full h-full object-cover" />
           ) : null}
         </div>
-      {/* ...le reste du code... */}
       {/* Progress bar for video */}
       {mode === "video" && recording && (
         <div className="w-full h-2 bg-gray-700">
