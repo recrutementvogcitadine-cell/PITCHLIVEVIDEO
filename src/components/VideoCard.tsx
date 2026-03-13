@@ -178,17 +178,38 @@ interface VideoProps {
     }
   };
 
+  // Détection d'enregistrement (si src contient 'blob:' ou 'recording')
+  const isRecording = src.startsWith('blob:') || src.includes('recording');
+
+  // Détection du rôle utilisateur (spectateur, créateur, admin)
+  const userRole = (typeof window !== 'undefined' && localStorage.getItem('user_role')) || 'spectateur';
+
   return (
     <div className="relative w-full h-screen flex flex-col justify-end bg-black">
+      {/* Barre d’onglets TikTok-like */}
+      <div className="absolute top-0 left-0 w-full flex justify-center items-center gap-4 z-50 pt-2">
+        <span className="text-xs text-white/80 font-bold px-2">LIVE</span>
+        <span className="text-xs text-white/80 font-bold px-2">Explorer</span>
+        <span className="text-xs text-white/80 font-bold px-2">Suivis</span>
+        <span className="text-base text-white font-bold border-b-2 border-white px-2">Pour toi</span>
+      </div>
+      {/* Icône caméra rouge si enregistrement */}
+      {isRecording && (
+        <div className="absolute top-6 right-6 z-50 flex items-center gap-2 animate-pulse">
+          <span className="w-4 h-4 rounded-full bg-red-600 border-2 border-white shadow-lg" />
+          <span className="text-red-600 font-bold text-base">REC</span>
+        </div>
+      )}
       {/* fiche d'inscription supprimée, car globale dans page.tsx */}
       {/* Profil créateur en overlay haut gauche + spectateurs */}
       <div className="absolute top-4 left-4 z-40 flex items-center gap-3 bg-black/60 rounded-full px-3 py-1 shadow-md">
-        {/* Avatar généré (initiale) */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center text-white font-bold text-lg uppercase">
-          {creator?.charAt(0) || '?'}
-        </div>
-        {/* Pseudo */}
-        <span className="text-white font-semibold text-base">@{creator}</span>
+        {/* Avatar et pseudo cliquables vers profil créateur */}
+        <a href={`/creator?u=${encodeURIComponent(creator)}`} className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center text-white font-bold text-lg uppercase group-hover:ring-2 group-hover:ring-blue-400 transition">
+            {creator?.charAt(0) || '?'}
+          </div>
+          <span className="text-white font-semibold text-base group-hover:underline">@{creator}</span>
+        </a>
         {/* Spectateurs */}
         <span className="flex items-center gap-1 text-xs text-white/80 bg-black/40 rounded-full px-2 py-1 ml-2">
           <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -240,6 +261,28 @@ interface VideoProps {
       )}
       {/* Action rail vertical */}
       <div className="absolute right-4 top-1/2 z-20 flex flex-col gap-4">
+        {/* Bouton suivre (visible pour spectateurs, non pour soi-même) */}
+        {userRole === 'spectateur' && userId !== creator && (
+          <button
+            className="flex flex-col items-center p-2 rounded-full bg-pink-500 text-white shadow transition hover:bg-pink-600"
+            aria-label="Suivre"
+            onClick={() => alert('Fonction Suivre à implémenter')}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 13 0"/></svg>
+            <span className="text-xs font-bold">Suivre</span>
+          </button>
+        )}
+        {/* Accès galerie publique */}
+        <a
+          href="/mur"
+          className="flex flex-col items-center p-2 rounded-full bg-yellow-400 text-white shadow transition hover:bg-yellow-500"
+          aria-label="Galerie publique"
+          style={{ boxShadow: '0 2px 16px 0 #facc1555' }}
+        >
+          {/* SVG galerie */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span className="text-xs font-bold">Galerie</span>
+        </a>
         {/* Like */}
         <button
           onClick={handleLike}
